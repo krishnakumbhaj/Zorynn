@@ -23,7 +23,6 @@ import { Loader2, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import * as z from 'zod';
-import { signIn } from 'next-auth/react';
 
 export default function SignUpForm() {
   const [username, setUsername] = useState('');
@@ -47,6 +46,7 @@ export default function SignUpForm() {
       username: '',
       email: '',
       password: '',
+      userType: 'Viewer',
     },
   });
 
@@ -80,46 +80,14 @@ export default function SignUpForm() {
       // 🔥 Step 1: Create user account
       const signUpResponse = await axios.post('/api/sign-up', {
         ...data,
-        role: 'buyer', // ✅ Explicitly set user role
       });
 
       if (signUpResponse.data.success) {
         toast({
           title: 'Account Created',
-          description: 'User account created successfully!',
+          description: 'User account created successfully. Please sign in.',
         });
-
-        // 🔥 Step 2: Add delay for database transaction
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // 🔥 Step 3: Auto sign-in with userType parameter
-        const result = await signIn('credentials', {
-          redirect: false,
-          identifier: data.email, // ✅ Use email as identifier
-          password: data.password,
-          userType: 'user', // ✅ Specify user type to only check UserModel
-          callbackUrl: '/dashboard',
-        });
-
-        console.log('User sign-in response:', result); // 👈 Debug log
-
-        if (result?.ok && !result?.error) {
-          // ✅ Auto sign-in successful
-          toast({
-            title: 'Welcome!',
-            description: 'Successfully signed in to your account.',
-          });
-          router.push('/dashboard');
-        } else {
-          // ❌ Auto sign-in failed
-          console.error('Auto sign-in failed:', result?.error);
-          
-          toast({
-            title: 'Account Created Successfully',
-            description: `Auto sign-in failed: ${result?.error || 'Unknown error'}. Please sign in manually.`,
-          });
-          router.push('/sign-in');
-        }
+        router.push('/sign-in');
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ error?: string }>;
@@ -224,6 +192,27 @@ export default function SignUpForm() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* User Type */}
+            <FormField
+              name="userType"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-white">User Type</FormLabel>
+                  <select
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    className="w-full h-10 rounded-md border border-input bg-zinc-800 px-3 py-2 text-white"
+                  >
+                    <option value="Admin">Admin</option>
+                    <option value="Analyst">Analyst</option>
+                    <option value="Viewer">Viewer</option>
+                  </select>
                   <FormMessage />
                 </FormItem>
               )}

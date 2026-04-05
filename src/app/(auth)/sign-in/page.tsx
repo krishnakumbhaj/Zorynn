@@ -40,13 +40,11 @@ export default function SignInForm() {
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     setIsSubmitting(true);
 
-    // 🔥 FIX: Add userType parameter to ensure only users can sign in here
     const result = await signIn('credentials', {
       redirect: false,
       identifier: data.identifier,
       password: data.password,
-      userType: 'user', // ✅ This restricts to UserModel only
-      callbackUrl: '/dashboard', // ✅ User-specific callback
+      callbackUrl: '/dashboard',
     });
 
     if (result?.error) {
@@ -67,8 +65,7 @@ export default function SignInForm() {
         description: 'Successfully signed in' 
       });
       
-      // 🔥 FIX: Redirect to user dashboard
-      router.push('/dashboard'); // ✅ Changed from '/dashboard' to '/dashboard'
+      router.push('/dashboard');
     }
 
     setIsSubmitting(false);

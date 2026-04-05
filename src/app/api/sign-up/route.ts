@@ -1,12 +1,27 @@
 import dbConnect from '@/lib/dbConnect';
 import UserModel from '@/models/User';
 import bcrypt from 'bcryptjs';
+import { signUpSchema } from '@/schemas/signUpSchema';
 
 export async function POST(request: Request) {
   await dbConnect();
 
   try {
-    const { username, email, password } = await request.json();
+    const body = await request.json();
+    const result = signUpSchema.safeParse(body);
+
+    if (!result.success) {
+      return Response.json(
+        {
+          success: false,
+          message: 'Invalid input data',
+          errors: result.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { username, email, password, userType } = result.data;
 
     const existingUserByUsername = await UserModel.findOne({
       username,
@@ -40,6 +55,7 @@ export async function POST(request: Request) {
         username,
         email,
         password: hashedPassword,
+        userType,
       });
 
     await newUser.save();

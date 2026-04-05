@@ -17,7 +17,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(
         credentials: Record<"identifier" | "password", string> | undefined
-      ): Promise<{ id: string; username: string; email: string } | null> {
+      ): Promise<{ id: string; username: string; email: string; userType: 'Admin' | 'Analyst' | 'Viewer' } | null> {
         if (!credentials) {
           throw new Error('No credentials provided');
         }
@@ -45,6 +45,7 @@ export const authOptions: NextAuthOptions = {
           id: (user._id as { toString: () => string }).toString(),
           username: user.username,
           email: user.email,
+          userType: user.userType,
         };
       },
     }),
@@ -56,6 +57,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.username = user.username;
+        token.userType = user.userType;
       }
       return token;
     },
@@ -65,6 +67,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
+        session.user.userType = token.userType as 'Admin' | 'Analyst' | 'Viewer';
         session.user.isVerified = token.isVerified as boolean;
         session.user.isAcceptingMessages = token.isAcceptingMessages as boolean;
       }
